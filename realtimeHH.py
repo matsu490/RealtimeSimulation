@@ -87,7 +87,8 @@ neuron = Neuron(1, dt)
 t_now = 0.0
 x_now = neuron.x_now
 X = array([[t_now] * neuron.N])
-Y = x_now[0:1]
+V = x_now[0:1]
+Gates = x_now[1:2]
 I_step = [I_step_ini]
 
 # ----------------------------------------------------------------------------
@@ -102,18 +103,26 @@ ax.set_ylim(-80, 50)
 ax.set_xlim(0, time_window)
 ax.set_ylabel('Membrane potential [mV]')
 ax.set_xlabel('Time [msec]')
-lines, = ax.plot(X, Y)
+lines, = ax.plot(X, V)
 
 ax1 = fig.add_subplot(413)
-ax1.set_ylim(I_step_min - 5, I_step_max + 5)
-ax1.axhline(I_step_ini, ls='--', c='red')
+ax1.set_ylim(-0.1, 1.1)
 ax1.set_xlim(0, time_window)
-ax1.set_ylabel('I_step [uA]')
+ax1.set_ylabel('Gate variables [-]')
 ax1.set_xlabel('Time [msec]')
-lines1, = ax1.plot(X, I_step)
+lines1, = ax1.plot(X, Gates)
 
-ax_I_step = axes([0.15, 0.15, 0.65, 0.03])
-slider_I_step = Slider(ax_I_step, 'I_step', -30.0, 30.0, valinit=I_step_ini)
+ax2 = fig.add_subplot(414)
+ax2.set_ylim(I_step_min - 5, I_step_max + 5)
+ax2.axhline(I_step_ini, ls='--', c='red')
+ax2.set_xlim(0, time_window)
+ax2.set_ylabel('I_step [uA]')
+ax2.set_xlabel('Time [msec]')
+lines2, = ax2.plot(X, I_step)
+
+ax_I_step = axes([0.15, 0.10, 0.65, 0.03])
+slider_I_step = Slider(
+    ax_I_step, 'I_step', I_step_min, I_step_max, valinit=I_step_ini)
 
 # ----------------------------------------------------------------------------
 #  Main loop
@@ -129,14 +138,18 @@ while True:
 # ----------------------------------------------------------------------------
     if max(X) < time_window:
         X = append(X, t_now)
-        Y = append(Y, x_now[0:1])
-        lines.set_data(X, Y)
-        lines1.set_data(X, I_step)
+        V = append(V, x_now[0:1])
+        Gates = append(Gates, x_now[1:2])
+        lines.set_data(X, V)
+        lines1.set_data(X, Gates)
+        lines2.set_data(X, I_step)
         pause(0.01)
     else:
         X += dt
-        Y = append(Y[1:], x_now[0:1])
-        lines.set_data(X, Y)
+        V = append(V[1:], x_now[0:1])
+        Gates = append(Gates, x_now[1:2])
+        lines.set_data(X, V)
         ax.set_xlim((X.min(), X.max()))
-        lines1.set_data(X, I_step)
+        lines1.set_data(X, Gates)
+        lines2.set_data(X, I_step)
         pause(0.01)
