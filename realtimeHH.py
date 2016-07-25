@@ -58,7 +58,7 @@ class Neuron(object):
         self.taus = array([tau_m, tau_h, tau_n])
         self.gates = array([m, h, n])
         self.dxdt_ch = (self.infs - self.gates) / self.taus
-        self.dxdt = append(self.dxdt_V, self.dxdt_ch)
+        self.dxdt = vstack((self.dxdt_V, self.dxdt_ch))
 
         return self.dxdt
 
@@ -135,7 +135,7 @@ m = 0.0
 h = 0.0
 n = 0.0
 '''
-I = 0.0
+I_tmp = -20.0
 dt = 0.1
 neuron = Neuron(1, dt)
 
@@ -152,7 +152,7 @@ Y = x_now[0:1]
 
 
 def updateSlideBar(val):
-    I = sb_I.val
+    I_tmp = sb_I.val
     lines.set_data
     fig.canvas.draw_idle()
 
@@ -164,6 +164,7 @@ ax.set_xlim(0, time_window)
 ax.set_ylabel('Membrane potential [mV]')
 ax.set_xlabel('Time [msec]')
 lines, = ax.plot(X, Y)
+
 ax_I = axes([0.15, 0.15, 0.65, 0.03])
 sb_I = Slider(ax_I, 'I', 0.0, 10.0, valinit=1.0)
 sb_I.on_changed(updateSlideBar)
@@ -172,6 +173,7 @@ sb_I.on_changed(updateSlideBar)
 #  Main loop
 # ----------------------------------------------------------------------------
 while True:
+    I = I_tmp
     t_now = t_now + dt
     # x_now = RungeKutta4(t_now, x_now, I)
     x_now = neuron.update(I)
