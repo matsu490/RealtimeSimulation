@@ -76,72 +76,14 @@ class Neuron(object):
         self.x = self.RungeKutta4(self.t, self.x, I)
         return self.x
 
-
-def NeuronDerivs(t, x, I):
-    V, m, h, n = x
-    dxdt_V = (
-        - gl * (V - Vl)
-        - gNa * m ** 3 * h * (V - VNa)
-        - gK * n ** 4 * (V - VK)
-        + I) / C
-
-    alpha_m = -0.1 * (V + 23.0) / (exp(-0.1 * (V + 23.0)) - 1.0)
-    beta_m = 4.0 * exp(-(V + 48.0) / 18.0)
-    m_inf = alpha_m / (alpha_m + beta_m)
-    tau_m = 1.0 / (alpha_m + beta_m)
-
-    alpha_h = 0.07 * exp(-(V + 37.0) / 20.0)
-    beta_h = 1.0 / (exp(-0.1 * (V + 7.0)) + 1.0)
-    h_inf = alpha_h / (alpha_h + beta_h)
-    tau_h = 1.0 / (alpha_h + beta_h)
-
-    alpha_n = -0.01 * (V + 27.0) / (exp(-0.1 * (V + 27.0)) - 1.0)
-    beta_n = 0.125 * exp(-(V + 37.0) / 80.0)
-    n_inf = alpha_n / (alpha_n + beta_n)
-    tau_n = 1.0 / (alpha_n + beta_n)
-
-    infs = array([m_inf, h_inf, n_inf])
-    taus = array([tau_m, tau_h, tau_n])
-    gates = array([m, h, n])
-    dxdt_ch = (infs - gates) / taus
-    dxdt = append(dxdt_V, dxdt_ch)
-
-    return dxdt
-
-
-def RungeKutta4(t, x, I):
-    k1 = NeuronDerivs(t, x, I)
-    k2 = NeuronDerivs(t + 0.5 * dt, x + 0.5 * k1 * dt, I)
-    k3 = NeuronDerivs(t + 0.5 * dt, x + 0.5 * k2 * dt, I)
-    k4 = NeuronDerivs(t + dt, x + k3 * dt, I)
-    dx = (k1 + 2 * k2 + 2 * k3 + k4) * dt / 6
-    x_new = x + dx
-    return x_new
-
 # ----------------------------------------------------------------------------
 #  Neuron parameters
 # ----------------------------------------------------------------------------
-'''
-C = 1.5
-gl = 0.5
-gNa = 52.0
-gK = 11.0
-Vl = 0.0
-VNa = 55.0
-VK = -90.0
-
-V = -60.0
-m = 0.0
-h = 0.0
-n = 0.0
-'''
-I_tmp = -20.0
+I_ini = -20.0
 dt = 0.1
 neuron = Neuron(1, dt)
 
-time_window = 100
 t_now = 0.0
-# x_now = array([V, m, h, n])
 x_now = neuron.x
 X = array([t_now])
 Y = x_now[0:1]
@@ -149,13 +91,7 @@ Y = x_now[0:1]
 # ----------------------------------------------------------------------------
 #  Figure initialization
 # ----------------------------------------------------------------------------
-
-
-def updateSlideBar(val):
-    I_tmp = sb_I.val
-    lines.set_data
-    fig.canvas.draw_idle()
-
+time_window = 100
 fig = figure()
 subplots_adjust(left=0.15, bottom=0.25)
 ax = fig.add_subplot(111)
@@ -166,16 +102,14 @@ ax.set_xlabel('Time [msec]')
 lines, = ax.plot(X, Y)
 
 ax_I = axes([0.15, 0.15, 0.65, 0.03])
-sb_I = Slider(ax_I, 'I', 0.0, 10.0, valinit=1.0)
-sb_I.on_changed(updateSlideBar)
+sb_I = Slider(ax_I, 'I', -30.0, 30.0, valinit=I_ini)
 
 # ----------------------------------------------------------------------------
 #  Main loop
 # ----------------------------------------------------------------------------
 while True:
-    I = I_tmp
+    I = sb_I.val
     t_now = t_now + dt
-    # x_now = RungeKutta4(t_now, x_now, I)
     x_now = neuron.update(I)
 
 # ----------------------------------------------------------------------------
