@@ -24,69 +24,71 @@ class Neuron(object):
         self.VNa = 55.0
         self.VK = -90.0
 
-        self.V = -60.0 * ones(N)
-        self.m = 0.0 * ones(N)
-        self.h = 0.0 * ones(N)
-        self.n = 0.0 * ones(N)
-        self.x = array([self.V, self.m, self.h, self.n])
-        self.I = 0.0 * ones(N)
+        V = -60.0 * ones(N)
+        m = 0.0 * ones(N)
+        h = 0.0 * ones(N)
+        n = 0.0 * ones(N)
+        self.x_now = vstack((V, m, h, n))
 
     def NeuronDerivs(self, t, x, I):
-        self.V, m, h, n = x
-        self.dxdt_V = (
-            - self.gl * (self.V - self.Vl)
-            - self.gNa * m ** 3 * h * (self.V - self.VNa)
-            - self.gK * n ** 4 * (self.V - self.VK)
+        V, m, h, n = x
+        dxdt_V = (
+            - self.gl * (V - self.Vl)
+            - self.gNa * m ** 3 * h * (V - self.VNa)
+            - self.gK * n ** 4 * (V - self.VK)
             + I) / self.C
 
-        self.alpha_m = -0.1 * (self.V + 23.0) / (exp(-0.1 * (self.V + 23.0)) - 1.0)
-        self.beta_m = 4.0 * exp(-(self.V + 48.0) / 18.0)
-        m_inf = self.alpha_m / (self.alpha_m + self.beta_m)
-        tau_m = 1.0 / (self.alpha_m + self.beta_m)
+        alpha_m = -0.1 * (V + 23.0) / (exp(-0.1 * (V + 23.0)) - 1.0)
+        beta_m = 4.0 * exp(-(V + 48.0) / 18.0)
+        m_inf = alpha_m / (alpha_m + beta_m)
+        tau_m = 1.0 / (alpha_m + beta_m)
 
-        alpha_h = 0.07 * exp(-(self.V + 37.0) / 20.0)
-        beta_h = 1.0 / (exp(-0.1 * (self.V + 7.0)) + 1.0)
+        alpha_h = 0.07 * exp(-(V + 37.0) / 20.0)
+        beta_h = 1.0 / (exp(-0.1 * (V + 7.0)) + 1.0)
         h_inf = alpha_h / (alpha_h + beta_h)
         tau_h = 1.0 / (alpha_h + beta_h)
 
-        alpha_n = -0.01 * (self.V + 27.0) / (exp(-0.1 * (self.V + 27.0)) - 1.0)
-        beta_n = 0.125 * exp(-(self.V + 37.0) / 80.0)
+        alpha_n = -0.01 * (V + 27.0) / (exp(-0.1 * (V + 27.0)) - 1.0)
+        beta_n = 0.125 * exp(-(V + 37.0) / 80.0)
         n_inf = alpha_n / (alpha_n + beta_n)
         tau_n = 1.0 / (alpha_n + beta_n)
 
-        self.infs = array([m_inf, h_inf, n_inf])
-        self.taus = array([tau_m, tau_h, tau_n])
-        self.gates = array([m, h, n])
-        self.dxdt_ch = (self.infs - self.gates) / self.taus
-        self.dxdt = vstack((self.dxdt_V, self.dxdt_ch))
+        infs = vstack((m_inf, h_inf, n_inf))
+        taus = vstack((tau_m, tau_h, tau_n))
+        gates = vstack((m, h, n))
+        dxdt_ch = (infs - gates) / taus
+        self.dxdt = vstack((dxdt_V, dxdt_ch))
 
         return self.dxdt
 
     def RungeKutta4(self, t, x, I):
-        self.k1 = self.NeuronDerivs(t, x, I)
-        self.k2 = self.NeuronDerivs(t + 0.5 * self.dt, x + 0.5 * self.k1 * self.dt, I)
-        self.k3 = self.NeuronDerivs(t + 0.5 * self.dt, x + 0.5 * self.k2 * self.dt, I)
-        self.k4 = self.NeuronDerivs(t + self.dt, x + self.k3 * self.dt, I)
-        dx = (self.k1 + 2.0 * self.k2 + 2.0 * self.k3 + self.k4) * self.dt / 6.0
+        k1 = self.NeuronDerivs(t, x, I)
+        k2 = self.NeuronDerivs(t + 0.5 * self.dt, x + 0.5 * k1 * self.dt, I)
+        k3 = self.NeuronDerivs(t + 0.5 * self.dt, x + 0.5 * k2 * self.dt, I)
+        k4 = self.NeuronDerivs(t + self.dt, x + k3 * self.dt, I)
+        dx = (k1 + 2.0 * k2 + 2.0 * k3 + k4) * self.dt / 6.0
         x_new = x + dx
         return x_new
 
     def update(self, I):
         self.t += self.dt
-        self.x = self.RungeKutta4(self.t, self.x, I)
-        return self.x
+        self.x_now = self.RungeKutta4(self.t, self.x_now, I)
+        return self.x_now
 
 # ----------------------------------------------------------------------------
 #  Neuron parameters
 # ----------------------------------------------------------------------------
-I_ini = -20.0
+I_step_ini = -20.0
+I_step_min = -30.0
+I_step_max = 30.0
 dt = 0.1
 neuron = Neuron(1, dt)
 
 t_now = 0.0
-x_now = neuron.x
-X = array([t_now])
+x_now = neuron.x_now
+X = array([[t_now] * neuron.N])
 Y = x_now[0:1]
+I_step = [I_step_ini]
 
 # ----------------------------------------------------------------------------
 #  Figure initialization
@@ -94,21 +96,31 @@ Y = x_now[0:1]
 time_window = 100
 fig = figure()
 subplots_adjust(left=0.15, bottom=0.25)
-ax = fig.add_subplot(111)
+
+ax = fig.add_subplot(211)
 ax.set_ylim(-80, 50)
 ax.set_xlim(0, time_window)
 ax.set_ylabel('Membrane potential [mV]')
 ax.set_xlabel('Time [msec]')
 lines, = ax.plot(X, Y)
 
-ax_I = axes([0.15, 0.15, 0.65, 0.03])
-sb_I = Slider(ax_I, 'I', -30.0, 30.0, valinit=I_ini)
+ax1 = fig.add_subplot(413)
+ax1.set_ylim(I_step_min - 5, I_step_max + 5)
+ax1.axhline(I_step_ini, ls='--', c='red')
+ax1.set_xlim(0, time_window)
+ax1.set_ylabel('I_step [uA]')
+ax1.set_xlabel('Time [msec]')
+lines1, = ax1.plot(X, I_step)
+
+ax_I_step = axes([0.15, 0.15, 0.65, 0.03])
+slider_I_step = Slider(ax_I_step, 'I_step', -30.0, 30.0, valinit=I_step_ini)
 
 # ----------------------------------------------------------------------------
 #  Main loop
 # ----------------------------------------------------------------------------
 while True:
-    I = sb_I.val
+    I_step.append(slider_I_step.val)
+    I = I_step[-1]
     t_now = t_now + dt
     x_now = neuron.update(I)
 
@@ -119,10 +131,12 @@ while True:
         X = append(X, t_now)
         Y = append(Y, x_now[0:1])
         lines.set_data(X, Y)
+        lines1.set_data(X, I_step)
         pause(0.01)
     else:
         X += dt
         Y = append(Y[1:], x_now[0:1])
         lines.set_data(X, Y)
         ax.set_xlim((X.min(), X.max()))
+        lines1.set_data(X, I_step)
         pause(0.01)
