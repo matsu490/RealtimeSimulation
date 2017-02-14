@@ -94,7 +94,7 @@ I_step = [I_step_ini]
 # ----------------------------------------------------------------------------
 #  Figure initialization
 # ----------------------------------------------------------------------------
-time_window = 100
+time_window = 1000
 fig = figure()
 subplots_adjust(left=0.15, bottom=0.25)
 
@@ -128,8 +128,7 @@ slider_I_step = Slider(
 #  Main loop
 # ----------------------------------------------------------------------------
 while True:
-    I_step.append(slider_I_step.val)
-    I = I_step[-1]
+    I = slider_I_step.val
     t_now = t_now + dt
     x_now = neuron.update(I)
 
@@ -140,6 +139,7 @@ while True:
         X = append(X, t_now)
         V = append(V, x_now[0:1])
         Gates = append(Gates, x_now[1:2])
+        I_step.append(slider_I_step.val)
         lines.set_data(X, V)
         lines1.set_data(X, Gates)
         lines2.set_data(X, I_step)
@@ -147,9 +147,13 @@ while True:
     else:
         X += dt
         V = append(V[1:], x_now[0:1])
-        Gates = append(Gates, x_now[1:2])
+        Gates = append(Gates[1:], x_now[1:2])
+        I_step.append(slider_I_step.val)
+        I_step.pop(0)
         lines.set_data(X, V)
-        ax.set_xlim((X.min(), X.max()))
         lines1.set_data(X, Gates)
         lines2.set_data(X, I_step)
+        ax.set_xlim((X.min(), X.max()))
+        ax1.set_xlim((X.min(), X.max()))
+        ax2.set_xlim((X.min(), X.max()))
         pause(0.01)
