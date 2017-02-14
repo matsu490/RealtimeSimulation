@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>799</width>
-    <height>594</height>
+    <width>752</width>
+    <height>661</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <widget class="QSlider" name="DCSlider">
     <property name="geometry">
      <rect>
-      <x>250</x>
-      <y>520</y>
+      <x>240</x>
+      <y>540</y>
       <width>381</width>
       <height>31</height>
      </rect>
@@ -53,16 +53,16 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>771</width>
-      <height>421</height>
+      <width>531</width>
+      <height>441</height>
      </rect>
     </property>
    </widget>
    <widget class="QWidget" name="ToolBarWidget" native="true">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>420</y>
+      <x>100</x>
+      <y>440</y>
       <width>581</width>
       <height>41</height>
      </rect>
@@ -71,8 +71,8 @@
    <widget class="QLabel" name="DCLabel">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>520</y>
+      <x>140</x>
+      <y>540</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -84,8 +84,8 @@
    <widget class="QPushButton" name="StartButton">
     <property name="geometry">
      <rect>
-      <x>250</x>
-      <y>470</y>
+      <x>240</x>
+      <y>490</y>
       <width>141</width>
       <height>41</height>
      </rect>
@@ -97,8 +97,8 @@
    <widget class="QPushButton" name="StopButton">
     <property name="geometry">
      <rect>
-      <x>410</x>
-      <y>470</y>
+      <x>400</x>
+      <y>490</y>
       <width>141</width>
       <height>41</height>
      </rect>
@@ -107,13 +107,89 @@
      <string>Stop</string>
     </property>
    </widget>
+   <widget class="QSlider" name="AmpSlider">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>588</y>
+      <width>160</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="singleStep">
+     <number>1</number>
+    </property>
+    <property name="pageStep">
+     <number>10</number>
+    </property>
+    <property name="value">
+     <number>20</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <property name="tickPosition">
+     <enum>QSlider::TicksBothSides</enum>
+    </property>
+   </widget>
+   <widget class="QSlider" name="FreqSlider">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>588</y>
+      <width>160</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="value">
+     <number>50</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <property name="tickPosition">
+     <enum>QSlider::TicksBothSides</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="AmpLabel">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>600</y>
+      <width>81</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Amplitude</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="FreqLabel">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>600</y>
+      <width>61</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Frequency</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>799</width>
+     <width>752</width>
      <height>24</height>
     </rect>
    </property>

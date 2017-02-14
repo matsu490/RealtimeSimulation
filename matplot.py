@@ -35,7 +35,7 @@ class MainForm(base, form):
 	self.timer.timeout.connect(self.figman.updateFigure)
 
     def startTimer(self):
-	self.timer.start(1)
+	self.timer.start(10)
 
     def stopTimer(self):
 	self.timer.stop()
@@ -48,65 +48,61 @@ class MainForm(base, form):
 class FigureManager(object):
     def __init__(self):
         self.time_window = 100
-        self.fig = plt.Figure((8, 4), dpi=100)
-        self.ax1 = self.fig.add_subplot(211)
-        self.ax2 = self.fig.add_subplot(212)
+        self.fig = plt.Figure((5, 4), dpi=100)
+        self.ax1 = self.fig.add_subplot(311)
+        self.ax2 = self.fig.add_subplot(312)
+        self.ax3 = self.fig.add_subplot(313)
         self.ax1.set_ylim(-80, 50)
         self.ax2.set_ylim(-50, 50)
+        self.ax3.set_ylim(-11, 11)
         self.ax1.set_xlim(0, self.time_window)
         self.ax2.set_xlim(0, self.time_window)
-        self.ax1.set_ylabel('Membrane potential [mV]')
-        self.ax1.set_xlabel('Time [msec]')
+        self.ax3.set_xlim(0, self.time_window)
+        # self.ax1.set_ylabel('Membrane potential [mV]')
+        # self.ax1.set_xlabel('Time [msec]')
         self.dt = 0.1
         self.t_ini = np.arange(0, self.time_window, self.dt)
         self.t = np.arange(0, self.time_window, self.dt)
         self.V = np.nan * np.zeros_like(self.t)
         self.DC = np.nan * np.zeros_like(self.t)
+        self.Iwave = np.nan * np.zeros_like(self.t)
         self.line_V, = self.ax1.plot(self.t, self.V, '.', ms=1)
         self.line_DC, = self.ax2.plot(self.t, self.DC, '.', ms=1)
+        self.line_Iwave, = self.ax3.plot(self.t, self.Iwave, '.', ms=1)
         self.idx = 0
+        self.t_now = 0
 
     def setCanvas(self, widget):
         self.canvas = FigureCanvasQTAgg(self.fig)
         self.canvas.setParent(widget)
 
     def updateFigure(self):
-        t, X = neuron.update(main_form.DCSlider.value())
+        DC = main_form.DCSlider.value()
+        amp = 0.1 * main_form.AmpSlider.value()
+        freq = main_form.FreqSlider.value()
+        Iwave = amp * np.sin(2 * np.pi * freq * self.t_now * 0.001)
+        t, X = neuron.update(DC + Iwave)
         if self.idx < len(self.t_ini):
             self.V[self.idx] = X[0]
-            self.DC[self.idx] = main_form.DCSlider.value()
+            self.DC[self.idx] = DC
+            self.Iwave[self.idx] = Iwave
             self.line_V.set_data(self.t_ini, self.V)
             self.line_DC.set_data(self.t_ini, self.DC)
+            self.line_Iwave.set_data(self.t_ini, self.Iwave)
         else:
             self.t += self.dt
             self.V = np.append(self.V[1:], X[0])
-            self.DC = np.append(self.DC[1:], main_form.DCSlider.value())
+            self.DC = np.append(self.DC[1:], DC)
+            self.Iwave = np.append(self.Iwave[1:], Iwave)
             self.line_V.set_data(self.t, self.V)
             self.line_DC.set_data(self.t, self.DC)
+            self.line_Iwave.set_data(self.t, self.Iwave)
             self.ax1.set_xlim(self.t.min(), self.t.max())
             self.ax2.set_xlim(self.t.min(), self.t.max())
+            self.ax3.set_xlim(self.t.min(), self.t.max())
         self.idx += 1
+        self.t_now += self.dt
         self.canvas.draw()
-
-    def plot(self, neuron):
-        self.X = np.array([[neuron.t_now] * neuron.N])
-        self.V = neuron.x_now[0:1]
-        self.lines, = self.ax.plot(self.X, self.V)
-        while True:
-            t_now, x_now = neuron.update(0)
-
-            if max(self.X) < self.time_window:
-                self.X = np.append(self.X, t_now)
-                self.V = np.append(self.V, x_now[0:1])
-                self.lines.set_data(self.X, self.V)
-                self.fig.draw()
-                # plt.pause(0.01)
-            else:
-                self.X += dt
-                self.V = np.append(self.V[1:], x_now[0:1])
-                self.lines.set_data(self.X, self.V)
-                ax.set_xlim((self.X.min(), self.X.max()))
-                # plt.pause(0.01)
 
 
 class Neuron(object):
