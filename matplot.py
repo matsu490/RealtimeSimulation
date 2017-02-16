@@ -27,12 +27,14 @@ class MainForm(base, form):
         self.setupUi(self)
         self.setWindowTitle('Demo form')
         self.establishConnections()
-        self.figman = FigureManager()
-        self.figman.setCanvas(self.PlotWidget)
-        NavigationToolbar2QTAgg(self.figman.canvas, self.ToolBarWidget)
+        self.canvas = Canvas(self.centralwidget)
+        self.toolbar = NavigationToolbar2QTAgg(self.canvas, self.centralwidget)
+        # self.VLayout = PyQt4.QtGui.QVBoxLayout(self.centralwidget)
+        self.VLayout.addWidget(self.canvas)
+        self.VLayout.addWidget(self.toolbar)
 
-        self.timer = PyQt4.QtCore.QTimer(self.figman.canvas)
-	self.timer.timeout.connect(self.figman.updateFigure)
+        self.timer = PyQt4.QtCore.QTimer(self.canvas)
+	self.timer.timeout.connect(self.canvas.updateFigure)
 
     def startTimer(self):
 	self.timer.start(10)
@@ -43,6 +45,70 @@ class MainForm(base, form):
     def establishConnections(self):
         PyQt4.QtCore.QObject.connect(self.StartButton, PyQt4.QtCore.SIGNAL('clicked()'), self.startTimer)
         PyQt4.QtCore.QObject.connect(self.StopButton, PyQt4.QtCore.SIGNAL('clicked()'), self.stopTimer)
+
+
+class Canvas(FigureCanvasQTAgg):
+    def __init__(self, parent=None):
+        self.time_window = 100
+        self.fig = plt.Figure((5, 4), dpi=100)
+        self.ax1 = self.fig.add_subplot(311)
+        self.ax2 = self.fig.add_subplot(312)
+        self.ax3 = self.fig.add_subplot(313)
+        self.ax1.set_ylim(-80, 50)
+        self.ax2.set_ylim(-50, 50)
+        self.ax3.set_ylim(-11, 11)
+        self.ax1.set_xlim(0, self.time_window)
+        self.ax2.set_xlim(0, self.time_window)
+        self.ax3.set_xlim(0, self.time_window)
+        # self.ax1.set_ylabel('Membrane potential [mV]')
+        # self.ax1.set_xlabel('Time [msec]')
+        self.dt = 0.1
+        self.t_ini = np.arange(0, self.time_window, self.dt)
+        self.t = np.arange(0, self.time_window, self.dt)
+        self.V = np.nan * np.zeros_like(self.t)
+        self.DC = np.nan * np.zeros_like(self.t)
+        self.Iwave = np.nan * np.zeros_like(self.t)
+        self.line_V, = self.ax1.plot(self.t, self.V, '.', ms=1)
+        self.line_DC, = self.ax2.plot(self.t, self.DC, '.', ms=1)
+        self.line_Iwave, = self.ax3.plot(self.t, self.Iwave, '.', ms=1)
+        self.idx = 0
+        self.t_now = 0
+
+        FigureCanvasQTAgg.__init__(self, self.fig)
+        self.setParent(parent)
+
+        FigureCanvasQTAgg.setSizePolicy(self,
+                                   PyQt4.QtGui.QSizePolicy.Expanding,
+                                   PyQt4.QtGui.QSizePolicy.Expanding)
+        FigureCanvasQTAgg.updateGeometry(self)
+
+    def updateFigure(self):
+        DC = main_form.DCSlider.value()
+        amp = 0.1 * main_form.AmpSlider.value()
+        freq = main_form.FreqSlider.value()
+        Iwave = amp * np.sin(2 * np.pi * freq * self.t_now * 0.001)
+        t, X = neuron.update(DC + Iwave)
+        if self.idx < len(self.t_ini):
+            self.V[self.idx] = X[0]
+            self.DC[self.idx] = DC
+            self.Iwave[self.idx] = Iwave
+            self.line_V.set_data(self.t_ini, self.V)
+            self.line_DC.set_data(self.t_ini, self.DC)
+            self.line_Iwave.set_data(self.t_ini, self.Iwave)
+        else:
+            self.t += self.dt
+            self.V = np.append(self.V[1:], X[0])
+            self.DC = np.append(self.DC[1:], DC)
+            self.Iwave = np.append(self.Iwave[1:], Iwave)
+            self.line_V.set_data(self.t, self.V)
+            self.line_DC.set_data(self.t, self.DC)
+            self.line_Iwave.set_data(self.t, self.Iwave)
+            self.ax1.set_xlim(self.t.min(), self.t.max())
+            self.ax2.set_xlim(self.t.min(), self.t.max())
+            self.ax3.set_xlim(self.t.min(), self.t.max())
+        self.idx += 1
+        self.t_now += self.dt
+        self.draw()
 
 
 class FigureManager(object):
