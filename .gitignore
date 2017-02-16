@@ -1,1 +1,7 @@
 *.pyc
+qt_matplot_sample.py
+realtime_sample.py
+realtime_sample2.py
+embedding_sample.py
+multi_thread.py
+tk.py
