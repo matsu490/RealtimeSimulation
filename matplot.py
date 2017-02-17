@@ -14,7 +14,7 @@ import PyQt4.uic
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg
+from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT
 
 import numpy as np
 
@@ -28,7 +28,7 @@ class MainForm(base, form):
         self.setWindowTitle('Demo form')
         self.establishConnections()
         self.canvas = Canvas(self.centralwidget)
-        self.toolbar = NavigationToolbar2QTAgg(self.canvas, self.centralwidget)
+        self.toolbar = NavigationToolbar2QT(self.canvas, self.centralwidget)
         self.VLayout.addWidget(self.canvas)
         self.VLayout.addWidget(self.toolbar)
 
