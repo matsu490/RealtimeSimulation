@@ -2,10 +2,10 @@
 # vim: set fileencoding=utf-8 :
 # vim: set foldmethod=marker commentstring=\ \ #\ %s :
 #
-# Author:    Taishi Matsumura
+# Author:    matsu490
 # Created:   2017-02-13
 #
-# Copyright (C) 2017 Taishi Matsumura
+# Copyright (C) 2017 matsu490
 #
 import sys
 import PyQt4.QtCore
