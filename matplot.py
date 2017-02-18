@@ -61,11 +61,15 @@ class MainForm(base, form):
         self.canvas.clearAxes()
         self.canvas.initNeuron()
 
+    def updateDCValueLabel(self):
+        self.DCValueLabel.setText(self.DCSlider.value())
+
     def establishConnections(self):
         PyQt4.QtCore.QObject.connect(self.RunButton, PyQt4.QtCore.SIGNAL('clicked()'), self.onRunButton)
         PyQt4.QtCore.QObject.connect(self.ResetButton, PyQt4.QtCore.SIGNAL('clicked()'), self.resetCanvas)
         PyQt4.QtCore.QObject.connect(self.StimulationButton, PyQt4.QtCore.SIGNAL('pressed()'), self.pressStimulationButton)
         PyQt4.QtCore.QObject.connect(self.StimulationButton, PyQt4.QtCore.SIGNAL('released()'), self.releaseStimulationButton)
+        self.DCSlider.valueChanged.connect(self.updateDCValueLabel)
 
 
 class Canvas(FigureCanvasQTAgg):
@@ -87,10 +91,10 @@ class Canvas(FigureCanvasQTAgg):
         self.ax2 = self.fig.add_subplot(412)
         self.ax3 = self.fig.add_subplot(413)
         self.ax4 = self.fig.add_subplot(414)
-        self.ax1.set_ylim(-80, 50)
-        self.ax2.set_ylim(-50, 50)
+        self.ax1.set_ylim(-81, 51)
+        self.ax2.set_ylim(-51, 51)
         self.ax3.set_ylim(-11, 11)
-        self.ax4.set_ylim(-1, 100)
+        self.ax4.set_ylim(-1, 101)
         self.ax1.set_xlim(0, self.time_window)
         self.ax2.set_xlim(0, self.time_window)
         self.ax3.set_xlim(0, self.time_window)
@@ -108,15 +112,15 @@ class Canvas(FigureCanvasQTAgg):
         self.DC = np.nan * np.zeros_like(self.t)
         self.Iwave = np.nan * np.zeros_like(self.t)
         self.Istim = np.nan * np.zeros_like(self.t)
-        self.line_V, = self.ax1.plot(self.t, self.V, '.', ms=1)
-        self.line_DC, = self.ax2.plot(self.t, self.DC, '.', ms=1)
-        self.line_Iwave, = self.ax3.plot(self.t, self.Iwave, '.', ms=1)
-        self.line_Istim, = self.ax4.plot(self.t, self.Istim, '.', ms=1)
+        self.line_V, = self.ax1.plot(self.t, self.V, 'b-', ms=1)
+        self.line_DC, = self.ax2.plot(self.t, self.DC, 'b-', ms=1)
+        self.line_Iwave, = self.ax3.plot(self.t, self.Iwave, 'b-', ms=1)
+        self.line_Istim, = self.ax4.plot(self.t, self.Istim, 'b-', ms=1)
         self.idx = 0
         self.t_now = 0
 
     def initNeuron(self):
-        self.neuron = Neuron(1, dt=self.dt)
+        self.neuron = LIFNeuron(1, dt=self.dt)
         self.inlayer = InputLayer(1, dt=self.dt)
 
     def clearAxes(self):
@@ -129,12 +133,16 @@ class Canvas(FigureCanvasQTAgg):
         self.DC = np.nan * np.zeros_like(self.t)
         self.Iwave = np.nan * np.zeros_like(self.t)
         self.Istim = np.nan * np.zeros_like(self.t)
-        self.line_V, = self.ax1.plot(self.t, self.V, 'b.', ms=1)
-        self.line_DC, = self.ax2.plot(self.t, self.DC, 'b.', ms=1)
-        self.line_Iwave, = self.ax3.plot(self.t, self.Iwave, 'b.', ms=1)
-        self.line_Istim, = self.ax4.plot(self.t, self.Istim, 'b.', ms=1)
+        self.line_V, = self.ax1.plot(self.t, self.V, 'b-', ms=1)
+        self.line_DC, = self.ax2.plot(self.t, self.DC, 'b-', ms=1)
+        self.line_Iwave, = self.ax3.plot(self.t, self.Iwave, 'b-', ms=1)
+        self.line_Istim, = self.ax4.plot(self.t, self.Istim, 'b-', ms=1)
         self.idx = 0
         self.t_now = 0
+        self.ax1.set_xlim(0, self.time_window)
+        self.ax2.set_xlim(0, self.time_window)
+        self.ax3.set_xlim(0, self.time_window)
+        self.ax4.set_xlim(0, self.time_window)
 
     def updateFigure(self):
         DC = main_form.DCSlider.value()
@@ -196,9 +204,39 @@ class Generator(object):
         pass
 
 
-class Neuron(Generator):
+class LIFNeuron(Generator):
     def __init__(self, N, dt=0.1):
-        super(Neuron, self).__init__(N, dt)
+        super(LIFNeuron, self).__init__(N, dt)
+        self.tau = 1.0
+        self.gl = 0.5
+        self.Vl = 0.0
+        self.Vth = 20.0
+        self.Vreset = -40.0
+        self.Vspike = 50.0
+        V = -60.0 * np.ones(self.N)
+        self.x_now = np.vstack((V,))
+
+    def update(self, ext=0.0):
+        self.t_now += self.dt
+        if self.x_now[0] == self.Vspike:
+            self.x_now = self.RungeKutta4(self.t_now, self.x_now, ext)
+            self.x_now[0] = self.Vreset
+        else:
+            self.x_now = self.RungeKutta4(self.t_now, self.x_now, ext)
+            if self.x_now[0] > self.Vth:
+                self.x_now[0] = self.Vspike
+        return self.t_now, self.x_now
+
+    def Derivatives(self, t, x, I):
+        V, = x
+        dxdt_V = (- self.gl * (V - self.Vl) + I) / self.tau
+        self.dxdt = np.vstack((dxdt_V,))
+        return self.dxdt
+
+
+class AckerNeuron(Generator):
+    def __init__(self, N, dt=0.1):
+        super(AckerNeuron, self).__init__(N, dt)
         self.C = 1.5
         self.gl = 0.5
         self.gNa = 52.0
