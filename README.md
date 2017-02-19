@@ -4,7 +4,7 @@ RealtimeSimulation
 ![demoimage](./demoimage.png)
 
 # Description
-PyQt で神経細胞のリアルタイムシミュレーションができるアプリケーション
+PyQt で単一神経細胞のリアルタイムシミュレーションができるアプリケーション
 
 # Requirement
 - Python 2.7.x
@@ -13,8 +13,26 @@ PyQt で神経細胞のリアルタイムシミュレーションができるア
 - matplotlib
 
 # Usage
-## アプリの起動  
+### アプリの起動  
 `$ python matplot.py`
+
+### "Run/Pause" ボタン
+シミュレーションの開始と一時停止
+
+### "Reset" ボタン
+シミュレーションのやりなおし
+
+### "Amplitude" スライダー
+周期入力の振幅
+
+### "Frequency" スライダー
+周期入力の周波数
+
+### "Amp" スライダー
+外部刺激の大きさ
+
+### "Generate" ボタン
+外部刺激の入力
 
 # Install
 以下のコマンドで任意のディレクトリに clone してください。  
