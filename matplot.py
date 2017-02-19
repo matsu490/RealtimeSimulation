@@ -27,6 +27,8 @@ class MainForm(base, form):
         self.setupUi(self)
         self.setWindowTitle('Demo form')
         self.establishConnections()
+        self.updateSliderLabels()
+
         self.canvas = Canvas(self.centralwidget)
         self.toolbar = NavigationToolbar2QT(self.canvas, self.centralwidget)
         self.VLayout.addWidget(self.canvas)
@@ -45,10 +47,10 @@ class MainForm(base, form):
         else:
             self.stopTimer()
 
-    def pressStimulationButton(self):
+    def pressIstimButton(self):
         self.is_stimulating = True
 
-    def releaseStimulationButton(self):
+    def releaseIstimButton(self):
         self.is_stimulating = False
 
     def startTimer(self):
@@ -61,15 +63,21 @@ class MainForm(base, form):
         self.canvas.clearAxes()
         self.canvas.initNeuron()
 
-    def updateDCValueLabel(self):
-        self.DCValueLabel.setText(self.DCSlider.value())
+    def updateSliderLabels(self):
+        self.DCValueLabel.setText(str(self.DCSlider.value()))
+        self.AmpValueLabel.setText(str(self.AmpSlider.value()))
+        self.FreqValueLabel.setText(str(self.FreqSlider.value()))
+        self.StimValueLabel.setText(str(self.StimSlider.value()))
 
     def establishConnections(self):
         PyQt4.QtCore.QObject.connect(self.RunButton, PyQt4.QtCore.SIGNAL('clicked()'), self.onRunButton)
         PyQt4.QtCore.QObject.connect(self.ResetButton, PyQt4.QtCore.SIGNAL('clicked()'), self.resetCanvas)
-        PyQt4.QtCore.QObject.connect(self.StimulationButton, PyQt4.QtCore.SIGNAL('pressed()'), self.pressStimulationButton)
-        PyQt4.QtCore.QObject.connect(self.StimulationButton, PyQt4.QtCore.SIGNAL('released()'), self.releaseStimulationButton)
-        self.DCSlider.valueChanged.connect(self.updateDCValueLabel)
+        PyQt4.QtCore.QObject.connect(self.IstimButton, PyQt4.QtCore.SIGNAL('pressed()'), self.pressIstimButton)
+        PyQt4.QtCore.QObject.connect(self.IstimButton, PyQt4.QtCore.SIGNAL('released()'), self.releaseIstimButton)
+        self.DCSlider.valueChanged.connect(self.updateSliderLabels)
+        self.AmpSlider.valueChanged.connect(self.updateSliderLabels)
+        self.FreqSlider.valueChanged.connect(self.updateSliderLabels)
+        self.StimSlider.valueChanged.connect(self.updateSliderLabels)
 
 
 class Canvas(FigureCanvasQTAgg):
@@ -291,7 +299,7 @@ class InputLayer(Generator):
         self.x_now = np.vstack((Istim,))
 
     def Derivatives(self, t, x, ext=0.0):
-        amp = main_form.IstimSlider.value()
+        amp = main_form.StimSlider.value()
         delta = main_form.is_stimulating * amp
         Istim, = x
         dxdt_Istim = -Istim / self.tau_Istim + delta
