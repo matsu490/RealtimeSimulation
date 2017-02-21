@@ -317,28 +317,28 @@ class AckerNeuron(Generator):
         self.x_now = np.vstack((V, m, mNap, h, n, mKs, mhf, mhs))
 
     def Derivatives(self, t, x, I):
-        V, m, mNap, h, n, mKs, mhf, mhs = x
+        V, mNa, hNa, mNap, n, mKs, mhf, mhs = x
         dxdt_V = (
             - self.gl * (V - self.Vl)
-            - (self.gNa * m ** 3 * h + self.gNap * mNap) * (V - self.VNa)
+            - (self.gNa * mNa ** 3 * hNa + self.gNap * mNap) * (V - self.VNa)
             - (self.gK * n ** 4 + self.gKs * mKs) * (V - self.VK)
             - self.gh * (0.65 * mhf + 0.35 * mhs) * (V - self.Vh)
             + I) / self.C
 
-        alpha_m = -0.1 * (V + 23.0) / (np.exp(-0.1 * (V + 23.0)) - 1.0)
-        beta_m = 4.0 * np.exp(-(V + 48.0) / 18.0)
-        m_inf = alpha_m / (alpha_m + beta_m)
-        tau_m = 1.0 / (alpha_m + beta_m)
+        alpha_mNa = -0.1 * (V + 23.0) / (np.exp(-0.1 * (V + 23.0)) - 1.0)
+        beta_mNa = 4.0 * np.exp(-(V + 48.0) / 18.0)
+        mNa_inf = alpha_mNa / (alpha_mNa + beta_mNa)
+        tau_mNa = 1.0 / (alpha_mNa + beta_mNa)
+
+        alpha_hNa = 0.07 * np.exp(-(V + 37.0) / 20.0)
+        beta_hNa = 1.0 / (np.exp(-0.1 * (V + 7.0)) + 1.0)
+        hNa_inf = alpha_hNa / (alpha_hNa + beta_hNa)
+        tau_hNa = 1.0 / (alpha_hNa + beta_hNa)
 
         alpha_mNap = 1.0 / (0.15 * (1.0 + np.exp(-(V + 38.0) / 6.5)))
         beta_mNap = np.exp(-(V + 38.0) / 6.5) / (0.15 * (1.0 + np.exp(-(V + 38.0) / 6.5)))
         mNap_inf = alpha_mNap / (alpha_mNap + beta_mNap)
         tau_mNap = 1.0 / (alpha_mNap + beta_mNap)
-
-        alpha_h = 0.07 * np.exp(-(V + 37.0) / 20.0)
-        beta_h = 1.0 / (np.exp(-0.1 * (V + 7.0)) + 1.0)
-        h_inf = alpha_h / (alpha_h + beta_h)
-        tau_h = 1.0 / (alpha_h + beta_h)
 
         alpha_n = -0.01 * (V + 27.0) / (np.exp(-0.1 * (V + 27.0)) - 1.0)
         beta_n = 0.125 * np.exp(-(V + 37.0) / 80.0)
@@ -354,10 +354,17 @@ class AckerNeuron(Generator):
         mhs_inf = 1.0 / (1.0 + np.exp((V + 71.3) / 7.9))
         tau_mhs = 5.6 / (np.exp((V - 1.7) / 14.0) + np.exp(-(V + 260.0) / 43.0) + 1.0)
 
-        infs = np.vstack((m_inf, mNap_inf, h_inf, n_inf, mKs_inf, mhf_inf, mhs_inf))
-        taus = np.vstack((tau_m, tau_mNap, tau_h, tau_n, tau_mKs, tau_mhf, tau_mhs))
-        gates = np.vstack((m, mNap, h, n, mKs, mhf, mhs))
-        dxdt_ch = (infs - gates) / taus
+        alphas = np.vstack((alpha_mNa, alpha_hNa, alpha_mNap, alpha_n))
+        betas = np.vstack((beta_mNa, beta_hNa, beta_mNap, beta_n))
+        gates = np.vstack((mNa, hNa, mNap, n))
+        dxdt_ch1 = alphas * (1 - gates) - betas * gates
+
+        infs = np.vstack((mKs_inf, mhf_inf, mhs_inf))
+        taus = np.vstack((tau_mKs, tau_mhf, tau_mhs))
+        gates = np.vstack((mKs, mhf, mhs))
+        dxdt_ch2 = (infs - gates) / taus
+
+        dxdt_ch = np.vstack((dxdt_ch1, dxdt_ch2))
         self.dxdt = np.vstack((dxdt_V, dxdt_ch))
         return self.dxdt
 
