@@ -113,7 +113,7 @@ class Canvas(FigureCanvasQTAgg):
         # self.ax1.set_ylabel('Membrane potential [mV]')
         self.ax4.set_xlabel('Time [msec]')
 
-        self.dt = 0.1
+        self.dt = 0.2
         self.t_ini = np.arange(0, self.time_window, self.dt)
         self.t = np.arange(0, self.time_window, self.dt)
         self.V = np.nan * np.zeros_like(self.t)
@@ -128,7 +128,7 @@ class Canvas(FigureCanvasQTAgg):
         self.t_now = 0
 
     def initNeuron(self):
-        self.neuron = LIFNeuron(1, dt=self.dt)
+        self.neuron = HHNeuron(1, dt=self.dt)
         self.inlayer = InputLayer(1, dt=self.dt)
 
     def clearAxes(self):
@@ -196,14 +196,14 @@ class Generator(object):
 
     def update(self, ext=0.0):
         self.t_now += self.dt
-        self.x_now = self.RungeKutta4(self.t_now, self.x_now, ext)
+        self.x_now = self.RungeKutta4(self.Derivatives, self.t_now, self.x_now, ext)
         return self.t_now, self.x_now
 
-    def RungeKutta4(self, t, x, ext=0.0):
-        k1 = self.Derivatives(t, x, ext)
-        k2 = self.Derivatives(t + 0.5 * self.dt, x + 0.5 * k1 * self.dt, ext)
-        k3 = self.Derivatives(t + 0.5 * self.dt, x + 0.5 * k2 * self.dt, ext)
-        k4 = self.Derivatives(t + self.dt, x + k3 * self.dt, ext)
+    def RungeKutta4(self, f, t, x, ext=0.0):
+        k1 = f(t, x, ext)
+        k2 = f(t + 0.5 * self.dt, x + 0.5 * k1 * self.dt, ext)
+        k3 = f(t + 0.5 * self.dt, x + 0.5 * k2 * self.dt, ext)
+        k4 = f(t + self.dt, x + k3 * self.dt, ext)
         dx = (k1 + 2.0 * k2 + 2.0 * k3 + k4) * self.dt / 6.0
         x_new = x + dx
         return x_new
@@ -227,10 +227,10 @@ class LIFNeuron(Generator):
     def update(self, ext=0.0):
         self.t_now += self.dt
         if self.x_now[0] == self.Vspike:
-            self.x_now = self.RungeKutta4(self.t_now, self.x_now, ext)
+            self.x_now = self.RungeKutta4(self.Derivatives, self.t_now, self.x_now, ext)
             self.x_now[0] = self.Vreset
         else:
-            self.x_now = self.RungeKutta4(self.t_now, self.x_now, ext)
+            self.x_now = self.RungeKutta4(self.Derivatives, self.t_now, self.x_now, ext)
             if self.x_now[0] > self.Vth:
                 self.x_now[0] = self.Vspike
         return self.t_now, self.x_now
@@ -242,9 +242,9 @@ class LIFNeuron(Generator):
         return self.dxdt
 
 
-class AckerNeuron(Generator):
+class HHNeuron(Generator):
     def __init__(self, N, dt=0.1):
-        super(AckerNeuron, self).__init__(N, dt)
+        super(HHNeuron, self).__init__(N, dt)
         self.C = 1.5
         self.gl = 0.5
         self.gNa = 52.0
@@ -287,7 +287,6 @@ class AckerNeuron(Generator):
         gates = np.vstack((m, h, n))
         dxdt_ch = (infs - gates) / taus
         self.dxdt = np.vstack((dxdt_V, dxdt_ch))
-
         return self.dxdt
 
 
