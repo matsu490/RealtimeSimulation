@@ -114,7 +114,7 @@ class Canvas(FigureCanvasQTAgg):
         # self.ax1.set_ylabel('Membrane potential [mV]')
         self.ax4.set_xlabel('Time [msec]')
 
-        self.dt = 0.1
+        self.dt = 0.8
         self.t_ini = np.arange(0, self.time_window, self.dt)
         self.t = np.arange(0, self.time_window, self.dt)
         self.V = np.nan * np.zeros_like(self.t)
@@ -130,7 +130,7 @@ class Canvas(FigureCanvasQTAgg):
 
     def initNeuron(self):
         self.neuron = AckerNeuron(dt=self.dt)
-        self.inlayer = InputLayer(dt=self.dt)
+        self.inlayer = Stimulator(dt=self.dt)
 
     def clearAxes(self):
         self.line_V.remove()
@@ -188,7 +188,7 @@ class Canvas(FigureCanvasQTAgg):
         self.draw()
 
 
-class Generator(object):
+class Neuron(object):
     def __init__(self, dt=0.1):
         self.dt = dt
         self.t = np.array((0.0, self.dt))
@@ -201,7 +201,7 @@ class Generator(object):
         self.t += self.dt
         return self.t_now, self.x_now
 
-    def integrate(self, ext, mode='numpy'):
+    def integrate(self, ext, mode='scipy'):
         if mode == 'scipy':
             _, res = scipy.integrate.odeint(self.dxdt, self.x_now, self.t, args=(ext,))
             return np.array(res)
@@ -223,7 +223,7 @@ class Generator(object):
         pass
 
 
-class LIFNeuron(Generator):
+class LIFNeuron(Neuron):
     def __init__(self, dt=0.1):
         super(LIFNeuron, self).__init__(dt)
         self.tau = 1.0
@@ -254,7 +254,7 @@ class LIFNeuron(Generator):
         return np.array([dVdt])
 
 
-class HHNeuron(Generator):
+class HHNeuron(Neuron):
     def __init__(self, dt=0.1):
         super(HHNeuron, self).__init__(dt)
         self.C = 1.5
@@ -301,7 +301,7 @@ class HHNeuron(Generator):
         return np.array([dVdt, dmdt, dhdt, dndt])
 
 
-class AckerNeuron(Generator):
+class AckerNeuron(Neuron):
     def __init__(self, dt=0.1):
         super(AckerNeuron, self).__init__(dt)
         self.C = 1.5
@@ -368,9 +368,9 @@ class AckerNeuron(Generator):
         return np.array([dVdt, dmNadt, dhNadt, dmNapdt, dndt, dmKsdt, dmhfdt, dmhsdt])
 
 
-class InputLayer(Generator):
+class Stimulator(Neuron):
     def __init__(self, dt):
-        super(InputLayer, self).__init__(dt)
+        super(Stimulator, self).__init__(dt)
         self.tau_Istim = 1.0  # msec
         Istim = 0.0
         self.x_now = np.array([Istim])
