@@ -94,7 +94,7 @@ class Canvas(FigureCanvasQTAgg):
         FigureCanvasQTAgg.updateGeometry(self)
 
     def initFigure(self):
-        self.time_window = 100  # msec
+        self.time_window = 1000  # msec
         self.fig = plt.Figure((5, 4), dpi=100)
         self.ax1 = self.fig.add_subplot(411)
         self.ax2 = self.fig.add_subplot(412)
@@ -201,8 +201,23 @@ class Generator(object):
         self.t += self.dt
         return self.t_now, self.x_now
 
-    def integrate(self, ext):
-        return scipy.integrate.odeint(self.dxdt, self.x_now, self.t, args=(ext,))[1]
+    def integrate(self, ext, mode='numpy'):
+        if mode == 'scipy':
+            _, res = scipy.integrate.odeint(self.dxdt, self.x_now, self.t, args=(ext,))
+            return np.array(res)
+        elif mode == 'numpy':
+            return self.RungeKutta4(self.dxdt, self.x_now, self.t_now, ext)
+
+    def RungeKutta4(self, f, x, t, ext):
+        # TODO: f() の引数の順序が気に食わないから直したい
+        # 今のところ odeint() の仕様に合わせて、(x, t, ext) の順になっている
+        k1 = f(x, t, ext)
+        k2 = f(x + 0.5 * k1 * self.dt, t + 0.5 * self.dt, ext)
+        k3 = f(x + 0.5 * k2 * self.dt, t + 0.5 * self.dt, ext)
+        k4 = f(x + k3 * self.dt, t + self.dt, ext)
+        dx = (k1 + 2.0 * k2 + 2.0 * k3 + k4) * self.dt / 6.0
+        x_new = x + dx
+        return x_new
 
     def dxdt(self, x, t, ext=0.0):
         pass
@@ -236,7 +251,7 @@ class LIFNeuron(Generator):
         I = ext
         V, = x
         dVdt = (-self.gL * (V - self.VL) + I) / self.tau
-        return [dVdt]
+        return np.array([dVdt])
 
 
 class HHNeuron(Generator):
@@ -254,7 +269,7 @@ class HHNeuron(Generator):
         m = 0.0
         h = 0.0
         n = 0.0
-        self.x_now = [V, m, h, n]
+        self.x_now = np.array([V, m, h, n])
 
     def dxdt(self, x, t, ext):
         I = ext
@@ -283,7 +298,7 @@ class HHNeuron(Generator):
         tau_n = 1.0 / (alpha_n+beta_n)
         dndt = (n_inf - n) / tau_n
 
-        return [dVdt, dmdt, dhdt, dndt]
+        return np.array([dVdt, dmdt, dhdt, dndt])
 
 
 class AckerNeuron(Generator):
@@ -310,7 +325,7 @@ class AckerNeuron(Generator):
         mKs = 0.0
         mhf = 0.0
         mhs = 0.0
-        self.x_now = [V, m, mNap, h, n, mKs, mhf, mhs]
+        self.x_now = np.array([V, m, mNap, h, n, mKs, mhf, mhs])
 
     def dxdt(self, x, t, ext):
         I = ext
@@ -350,7 +365,7 @@ class AckerNeuron(Generator):
         tau_mhs = 5.6 / (np.exp((V - 1.7) / 14.0) + np.exp(-(V + 260.0) / 43.0) + 1.0)
         dmhsdt = (mhs_inf - mhs) / tau_mhs
 
-        return [dVdt, dmNadt, dhNadt, dmNapdt, dndt, dmKsdt, dmhfdt, dmhsdt]
+        return np.array([dVdt, dmNadt, dhNadt, dmNapdt, dndt, dmKsdt, dmhfdt, dmhsdt])
 
 
 class InputLayer(Generator):
@@ -358,14 +373,14 @@ class InputLayer(Generator):
         super(InputLayer, self).__init__(dt)
         self.tau_Istim = 1.0  # msec
         Istim = 0.0
-        self.x_now = [Istim]
+        self.x_now = np.array([Istim])
 
     def dxdt(self, x, t, ext=0.0):
         amp = main_form.StimSlider.value()
         delta = main_form.is_stimulating * amp
         Istim, = x
         dIdt = -Istim / self.tau_Istim + delta
-        return [dIdt]
+        return np.array([dIdt])
 
 
 if __name__ == '__main__':
