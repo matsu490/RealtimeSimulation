@@ -1,4 +1,10 @@
 # Change Log
+## [v0.2.0](https://github.com/matsu490/RealtimeSimulation/tree/v0.2.0) (2017--)
+**Implemented enhancements:**
+- scipy.integrate.odeint() を用いた数値積分が使えるようになった
+- LIF (leaky integrate-and-fire) モデルを実装した
+- HH (Hodgkin-Huxley) モデルを実装した
+
 
 ## [v0.1.0](https://github.com/matsu490/RealtimeSimulation/tree/v0.1.0) (2017-2-17)
 **Implemented enhancements:**
@@ -10,5 +16,5 @@
 - [ ] ネットワークシミュレーション
 - [ ] レコードボタンの追加とデータ保存機能の追加する
 - [ ] 一定間隔で外部刺激を与えるための UI を追加する
-- [ ] LIF モデルを追加する
+- [x] LIF モデルを追加する
 - [ ] ノイズを入れる
