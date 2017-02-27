@@ -23,10 +23,10 @@
          <number>100</number>
         </property>
         <property name="singleStep">
-         <number>1</number>
+         <number>5</number>
         </property>
         <property name="pageStep">
-         <number>10</number>
+         <number>5</number>
         </property>
         <property name="value">
          <number>20</number>
@@ -56,7 +56,10 @@
       <item row="2" column="2">
        <widget class="QSlider" name="FreqSlider">
         <property name="maximum">
-         <number>100</number>
+         <number>200</number>
+        </property>
+        <property name="singleStep">
+         <number>10</number>
         </property>
         <property name="value">
          <number>50</number>
@@ -86,7 +89,13 @@
       <item row="1" column="5">
        <widget class="QSlider" name="StimSlider">
         <property name="maximum">
-         <number>100</number>
+         <number>50</number>
+        </property>
+        <property name="singleStep">
+         <number>5</number>
+        </property>
+        <property name="pageStep">
+         <number>5</number>
         </property>
         <property name="value">
          <number>20</number>
@@ -109,19 +118,22 @@
       <item row="0" column="2">
        <widget class="QSlider" name="DCSlider">
         <property name="minimum">
-         <number>-40</number>
+         <number>-200</number>
         </property>
         <property name="maximum">
-         <number>20</number>
+         <number>100</number>
+        </property>
+        <property name="singleStep">
+         <number>5</number>
         </property>
         <property name="pageStep">
          <number>5</number>
         </property>
         <property name="value">
-         <number>-10</number>
+         <number>-100</number>
         </property>
         <property name="sliderPosition">
-         <number>-10</number>
+         <number>-100</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -158,7 +170,7 @@
        <widget class="QLabel" name="DCValueLabel">
         <property name="minimumSize">
          <size>
-          <width>20</width>
+          <width>30</width>
           <height>0</height>
          </size>
         </property>
@@ -229,6 +241,15 @@
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>RunButton</tabstop>
+  <tabstop>ResetButton</tabstop>
+  <tabstop>DCSlider</tabstop>
+  <tabstop>AmpSlider</tabstop>
+  <tabstop>FreqSlider</tabstop>
+  <tabstop>StimSlider</tabstop>
+  <tabstop>IstimButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

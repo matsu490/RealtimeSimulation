@@ -65,10 +65,10 @@ class MainForm(base, form):
         self.canvas.initNeuron()
 
     def updateSliderLabels(self):
-        self.DCValueLabel.setText(str(self.DCSlider.value()))
-        self.AmpValueLabel.setText(str(self.AmpSlider.value()))
+        self.DCValueLabel.setText(str(0.1 * self.DCSlider.value()))
+        self.AmpValueLabel.setText(str(0.1 * self.AmpSlider.value()))
         self.FreqValueLabel.setText(str(self.FreqSlider.value()))
-        self.StimValueLabel.setText(str(self.StimSlider.value()))
+        self.StimValueLabel.setText(str(0.1 * self.StimSlider.value()))
 
     def establishConnections(self):
         PyQt4.QtCore.QObject.connect(self.RunButton, PyQt4.QtCore.SIGNAL('clicked()'), self.onRunButton)
@@ -101,9 +101,9 @@ class Canvas(FigureCanvasQTAgg):
         self.ax3 = self.fig.add_subplot(413)
         self.ax4 = self.fig.add_subplot(414)
         self.ax1.set_ylim(-81, 51)
-        self.ax2.set_ylim(-51, 51)
+        self.ax2.set_ylim(-21, 11)
         self.ax3.set_ylim(-11, 11)
-        self.ax4.set_ylim(-1, 101)
+        self.ax4.set_ylim(-1, 6)
         self.ax1.set_xlim(0, self.time_window)
         self.ax2.set_xlim(0, self.time_window)
         self.ax3.set_xlim(0, self.time_window)
@@ -154,7 +154,7 @@ class Canvas(FigureCanvasQTAgg):
         self.ax4.set_xlim(0, self.time_window)
 
     def updateFigure(self):
-        DC = main_form.DCSlider.value()
+        DC = 0.1 * main_form.DCSlider.value()
         amp = 0.1 * main_form.AmpSlider.value()
         freq = main_form.FreqSlider.value()
         Iwave = amp * np.sin(2 * np.pi * freq * self.t_now * 0.001)
@@ -376,7 +376,7 @@ class Stimulator(Neuron):
         self.x_now = np.array([Istim])
 
     def dxdt(self, x, t, ext=0.0):
-        amp = main_form.StimSlider.value()
+        amp = 0.1 * main_form.StimSlider.value()
         delta = main_form.is_stimulating * amp
         Istim, = x
         dIdt = -Istim / self.tau_Istim + delta
