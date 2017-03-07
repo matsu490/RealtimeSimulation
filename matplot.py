@@ -69,6 +69,7 @@ class MainForm(base, form):
         self.AmpValueLabel.setText(str(0.1 * self.AmpSlider.value()))
         self.FreqValueLabel.setText(str(self.FreqSlider.value()))
         self.StimValueLabel.setText(str(0.1 * self.StimSlider.value()))
+        self.DiffusionConstantValueLabel.setText(str(self.DiffusionConstantSlider.value()))
 
     def establishConnections(self):
         PyQt4.QtCore.QObject.connect(self.RunButton, PyQt4.QtCore.SIGNAL('clicked()'), self.onRunButton)
@@ -79,6 +80,7 @@ class MainForm(base, form):
         self.AmpSlider.valueChanged.connect(self.updateSliderLabels)
         self.FreqSlider.valueChanged.connect(self.updateSliderLabels)
         self.StimSlider.valueChanged.connect(self.updateSliderLabels)
+        self.DiffusionConstantSlider.valueChanged.connect(self.updateSliderLabels)
 
 
 class Canvas(FigureCanvasQTAgg):
@@ -96,23 +98,27 @@ class Canvas(FigureCanvasQTAgg):
     def initFigure(self):
         self.time_window = 1000  # msec
         self.fig = plt.Figure((5, 4), dpi=100)
-        self.ax1 = self.fig.add_subplot(411)
-        self.ax2 = self.fig.add_subplot(412)
-        self.ax3 = self.fig.add_subplot(413)
-        self.ax4 = self.fig.add_subplot(414)
+        row, clm = 5, 1
+        self.ax1 = self.fig.add_subplot(row, clm, 1)
+        self.ax2 = self.fig.add_subplot(row, clm, 2)
+        self.ax3 = self.fig.add_subplot(row, clm, 3)
+        self.ax4 = self.fig.add_subplot(row, clm, 4)
+        self.ax5 = self.fig.add_subplot(row, clm, 5)
         self.ax1.set_ylim(-81, 51)
         self.ax2.set_ylim(-21, 11)
         self.ax3.set_ylim(-11, 11)
         self.ax4.set_ylim(-1, 6)
+        self.ax5.set_ylim(-10, 10)
         self.ax1.set_xlim(0, self.time_window)
         self.ax2.set_xlim(0, self.time_window)
         self.ax3.set_xlim(0, self.time_window)
         self.ax4.set_xlim(0, self.time_window)
+        self.ax5.set_xlim(0, self.time_window)
         self.ax1.set_xticklabels([])
         self.ax2.set_xticklabels([])
         self.ax3.set_xticklabels([])
-        # self.ax1.set_ylabel('Membrane potential [mV]')
-        self.ax4.set_xlabel('Time [msec]')
+        self.ax4.set_xticklabels([])
+        self.ax5.set_xlabel('Time [msec]')
 
         self.dt = 0.8
         self.t_ini = np.arange(0, self.time_window, self.dt)
@@ -121,68 +127,81 @@ class Canvas(FigureCanvasQTAgg):
         self.DC = np.nan * np.zeros_like(self.t)
         self.Iwave = np.nan * np.zeros_like(self.t)
         self.Istim = np.nan * np.zeros_like(self.t)
+        self.Inoise = np.nan * np.zeros_like(self.t)
         self.line_V, = self.ax1.plot(self.t, self.V, 'b-', ms=1)
         self.line_DC, = self.ax2.plot(self.t, self.DC, 'b-', ms=1)
         self.line_Iwave, = self.ax3.plot(self.t, self.Iwave, 'b-', ms=1)
         self.line_Istim, = self.ax4.plot(self.t, self.Istim, 'b-', ms=1)
+        self.line_Inoise, = self.ax5.plot(self.t, self.Inoise, 'b-', ms=1)
         self.idx = 0
         self.t_now = 0
 
     def initNeuron(self):
         self.neuron = AckerNeuron(dt=self.dt)
         self.inlayer = Stimulator(dt=self.dt)
+        self.noise_source = NoiseGenerator(dt=self.dt)
 
     def clearAxes(self):
         self.line_V.remove()
         self.line_DC.remove()
         self.line_Iwave.remove()
         self.line_Istim.remove()
+        self.line_Inoise.remove()
         self.t = np.arange(0, self.time_window, self.dt)
         self.V = np.nan * np.zeros_like(self.t)
         self.DC = np.nan * np.zeros_like(self.t)
         self.Iwave = np.nan * np.zeros_like(self.t)
         self.Istim = np.nan * np.zeros_like(self.t)
+        self.Inoise = np.nan * np.zeros_like(self.t)
         self.line_V, = self.ax1.plot(self.t, self.V, 'b-', ms=1)
         self.line_DC, = self.ax2.plot(self.t, self.DC, 'b-', ms=1)
         self.line_Iwave, = self.ax3.plot(self.t, self.Iwave, 'b-', ms=1)
         self.line_Istim, = self.ax4.plot(self.t, self.Istim, 'b-', ms=1)
+        self.line_Inoise, = self.ax5.plot(self.t, self.Inoise, 'b-', ms=1)
         self.idx = 0
         self.t_now = 0
         self.ax1.set_xlim(0, self.time_window)
         self.ax2.set_xlim(0, self.time_window)
         self.ax3.set_xlim(0, self.time_window)
         self.ax4.set_xlim(0, self.time_window)
+        self.ax5.set_xlim(0, self.time_window)
 
     def updateFigure(self):
         DC = 0.1 * main_form.DCSlider.value()
         amp = 0.1 * main_form.AmpSlider.value()
         freq = main_form.FreqSlider.value()
         Iwave = amp * np.sin(2 * np.pi * freq * self.t_now * 0.001)
-        t, Istim = self.inlayer.update()
-        t, X = self.neuron.update(DC + Iwave + Istim[0])
+        _, Istim = self.inlayer.update()
+        _, Inoise = self.noise_source.update()
+        t, X = self.neuron.update(DC + Iwave + Istim[0] + Inoise)
         if self.idx < len(self.t_ini):
             self.V[self.idx] = X[0]
             self.DC[self.idx] = DC
             self.Iwave[self.idx] = Iwave
             self.Istim[self.idx] = Istim
+            self.Inoise[self.idx] = Inoise
             self.line_V.set_data(self.t_ini, self.V)
             self.line_DC.set_data(self.t_ini, self.DC)
             self.line_Iwave.set_data(self.t_ini, self.Iwave)
             self.line_Istim.set_data(self.t_ini, self.Istim)
+            self.line_Inoise.set_data(self.t_ini, self.Inoise)
         else:
             self.t += self.dt
             self.V = np.append(self.V[1:], X[0])
             self.DC = np.append(self.DC[1:], DC)
             self.Iwave = np.append(self.Iwave[1:], Iwave)
             self.Istim = np.append(self.Istim[1:], Istim)
+            self.Inoise = np.append(self.Inoise[1:], Inoise)
             self.line_V.set_data(self.t, self.V)
             self.line_DC.set_data(self.t, self.DC)
             self.line_Iwave.set_data(self.t, self.Iwave)
             self.line_Istim.set_data(self.t, self.Istim)
+            self.line_Inoise.set_data(self.t, self.Inoise)
             self.ax1.set_xlim(self.t.min(), self.t.max())
             self.ax2.set_xlim(self.t.min(), self.t.max())
             self.ax3.set_xlim(self.t.min(), self.t.max())
             self.ax4.set_xlim(self.t.min(), self.t.max())
+            self.ax5.set_xlim(self.t.min(), self.t.max())
         self.idx += 1
         self.t_now += self.dt
         self.draw()
@@ -381,6 +400,30 @@ class Stimulator(Neuron):
         Istim, = x
         dIdt = -Istim / self.tau_Istim + delta
         return np.array([dIdt])
+
+
+class Generator(object):
+    def __init__(self, dt=0.1):
+        self.dt = dt
+        self.t_now = 0.0
+        self.x_now = None
+
+    def update(self):
+        self.x_now = self.state_updater()
+        self.t_now += self.dt
+        return self.t_now, self.x_now
+
+    def state_updater(self):
+        pass
+
+
+class NoiseGenerator(Generator):
+    def __init__(self, dt):
+        super(NoiseGenerator, self).__init__(dt)
+
+    def state_updater(self):
+        D = main_form.DiffusionConstantSlider.value()
+        return np.sqrt(2 * D * self.dt * 0.001) * np.random.randn()
 
 
 if __name__ == '__main__':
