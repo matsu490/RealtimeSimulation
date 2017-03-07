@@ -15,6 +15,27 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0" colspan="2">
+     <layout class="QVBoxLayout" name="VLayout"/>
+    </item>
+    <item row="2" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QPushButton" name="RunButton">
+        <property name="text">
+         <string>Run/Pause</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="ResetButton">
+        <property name="text">
+         <string>Reset</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
     <item row="3" column="0" colspan="2">
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="2">
@@ -79,42 +100,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="StimLabel">
-        <property name="text">
-         <string>Amp</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="5">
-       <widget class="QSlider" name="StimSlider">
-        <property name="maximum">
-         <number>50</number>
-        </property>
-        <property name="singleStep">
-         <number>5</number>
-        </property>
-        <property name="pageStep">
-         <number>5</number>
-        </property>
-        <property name="value">
-         <number>20</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBothSides</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3">
-       <widget class="QLabel" name="IstimLabel">
-        <property name="text">
-         <string>Stimulation</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="2">
        <widget class="QSlider" name="DCSlider">
         <property name="minimum">
@@ -130,10 +115,10 @@
          <number>5</number>
         </property>
         <property name="value">
-         <number>-100</number>
+         <number>-40</number>
         </property>
         <property name="sliderPosition">
-         <number>-100</number>
+         <number>-40</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -182,6 +167,52 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="5">
+       <widget class="QSlider" name="DiffusionConstantSlider">
+        <property name="maximum">
+         <number>10000</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
+        </property>
+        <property name="pageStep">
+         <number>100</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="DiffusionConstantLabel">
+        <property name="text">
+         <string>D</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLabel" name="DiffusionConstantValueLabel">
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QLabel" name="StimLabel">
+        <property name="text">
+         <string>Amp</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="4">
        <widget class="QLabel" name="StimValueLabel">
         <property name="minimumSize">
@@ -198,31 +229,32 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="4" colspan="2">
+      <item row="1" column="5">
+       <widget class="QSlider" name="StimSlider">
+        <property name="maximum">
+         <number>50</number>
+        </property>
+        <property name="singleStep">
+         <number>5</number>
+        </property>
+        <property name="pageStep">
+         <number>5</number>
+        </property>
+        <property name="value">
+         <number>20</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::TicksBothSides</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="6">
        <widget class="QPushButton" name="IstimButton">
         <property name="text">
          <string>Generate</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="0" column="0" colspan="2">
-     <layout class="QVBoxLayout" name="VLayout"/>
-    </item>
-    <item row="2" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QPushButton" name="RunButton">
-        <property name="text">
-         <string>Run/Pause</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="ResetButton">
-        <property name="text">
-         <string>Reset</string>
         </property>
        </widget>
       </item>
@@ -247,8 +279,6 @@
   <tabstop>DCSlider</tabstop>
   <tabstop>AmpSlider</tabstop>
   <tabstop>FreqSlider</tabstop>
-  <tabstop>StimSlider</tabstop>
-  <tabstop>IstimButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>
