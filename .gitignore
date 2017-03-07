@@ -6,3 +6,6 @@ embedding_sample.py
 multi_thread.py
 tk.py
 odeint_sample.py
+sample.wav
+sin.wav
+wave_sample.py
