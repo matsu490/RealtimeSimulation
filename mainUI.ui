@@ -170,16 +170,19 @@
       <item row="0" column="5">
        <widget class="QSlider" name="DiffusionConstantSlider">
         <property name="maximum">
-         <number>10000</number>
+         <number>100000</number>
         </property>
         <property name="singleStep">
-         <number>100</number>
+         <number>10000</number>
         </property>
         <property name="pageStep">
-         <number>100</number>
+         <number>10000</number>
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::TicksBothSides</enum>
         </property>
        </widget>
       </item>
@@ -194,7 +197,7 @@
        <widget class="QLabel" name="DiffusionConstantValueLabel">
         <property name="minimumSize">
          <size>
-          <width>30</width>
+          <width>40</width>
           <height>0</height>
          </size>
         </property>
