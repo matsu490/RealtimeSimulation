@@ -108,7 +108,7 @@ class Canvas(FigureCanvasQTAgg):
         self.ax2.set_ylim(-21, 11)
         self.ax3.set_ylim(-11, 11)
         self.ax4.set_ylim(-1, 6)
-        self.ax5.set_ylim(-10, 10)
+        self.ax5.set_ylim(-40, 40)
         self.ax1.set_xlim(0, self.time_window)
         self.ax2.set_xlim(0, self.time_window)
         self.ax3.set_xlim(0, self.time_window)
