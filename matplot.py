@@ -215,19 +215,19 @@ class Neuron(object):
         self.x_now = None
 
     def update(self, ext=0.0):
-        self.x_now = self.integrate(ext)
+        self.x_now = self._integrate(ext)
         self.t_now += self.dt
         self.t += self.dt
         return self.t_now, self.x_now
 
-    def integrate(self, ext, mode='scipy'):
+    def _integrate(self, ext, mode='scipy'):
         if mode == 'scipy':
-            _, res = scipy.integrate.odeint(self.dxdt, self.x_now, self.t, args=(ext,))
+            _, res = scipy.integrate.odeint(self._dxdt, self.x_now, self.t, args=(ext,))
             return np.array(res)
         elif mode == 'numpy':
-            return self.RungeKutta4(self.dxdt, self.x_now, self.t_now, ext)
+            return self.RungeKutta4(self._dxdt, self.x_now, self.t_now, ext)
 
-    def RungeKutta4(self, f, x, t, ext):
+    def _RungeKutta4(self, f, x, t, ext):
         # TODO: f() の引数の順序が気に食わないから直したい
         # 今のところ odeint() の仕様に合わせて、(x, t, ext) の順になっている
         k1 = f(x, t, ext)
@@ -238,7 +238,7 @@ class Neuron(object):
         x_new = x + dx
         return x_new
 
-    def dxdt(self, x, t, ext=0.0):
+    def _dxdt(self, x, t, ext=0.0):
         pass
 
 
@@ -256,17 +256,17 @@ class LIFNeuron(Neuron):
 
     def update(self, ext=0.0):
         if self.x_now[0] == self.Vspike:
-            self.x_now = self.integrate(ext)
+            self.x_now = self._integrate(ext)
             self.x_now[0] = self.Vreset
         else:
-            self.x_now = self.integrate(ext)
+            self.x_now = self._integrate(ext)
             if self.x_now[0] > self.Vth:
                 self.x_now[0] = self.Vspike
         self.t_now += self.dt
         self.t += self.dt
         return self.t_now, self.x_now
 
-    def dxdt(self, x, t, ext):
+    def _dxdt(self, x, t, ext):
         I = ext
         V, = x
         dVdt = (-self.gL * (V - self.VL) + I) / self.tau
@@ -290,7 +290,7 @@ class HHNeuron(Neuron):
         n = 0.0
         self.x_now = np.array([V, m, h, n])
 
-    def dxdt(self, x, t, ext):
+    def _dxdt(self, x, t, ext):
         I = ext
         V, m, h, n = x
         dVdt = (
@@ -346,7 +346,7 @@ class AckerNeuron(Neuron):
         mhs = 0.0
         self.x_now = np.array([V, m, mNap, h, n, mKs, mhf, mhs])
 
-    def dxdt(self, x, t, ext):
+    def _dxdt(self, x, t, ext):
         I = ext
         V, mNa, hNa, mNap, n, mKs, mhf, mhs = x
         dVdt = (
@@ -394,7 +394,7 @@ class Stimulator(Neuron):
         Istim = 0.0
         self.x_now = np.array([Istim])
 
-    def dxdt(self, x, t, ext=0.0):
+    def _dxdt(self, x, t, ext=0.0):
         amp = 0.1 * main_form.StimSlider.value()
         delta = main_form.is_stimulating * amp
         Istim, = x
