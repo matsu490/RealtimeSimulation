@@ -5,7 +5,7 @@
 - LIF (leaky integrate-and-fire) モデルを実装した
 - HH (Hodgkin-Huxley) モデルを実装した
 - ガウシアンノイズの入力を実装した
-- 積分を必要としない入力のためのクラスを実装した
+- 積分を必要としない入力のためのクラス（Generator）を実装した
 
 ## [v0.1.0](https://github.com/matsu490/RealtimeSimulation/tree/v0.1.0) (2017-2-17)
 **Implemented enhancements:**
