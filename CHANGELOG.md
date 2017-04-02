@@ -1,5 +1,5 @@
 # Change Log
-## [v0.2.0](https://github.com/matsu490/RealtimeSimulation/tree/v0.2.0) (2017--)
+## [v0.2.0](https://github.com/matsu490/RealtimeSimulation/tree/v0.2.0) (2017-4-3)
 **Implemented enhancements:**
 - scipy.integrate.odeint() を用いた数値積分が使えるようになった
 - LIF (leaky integrate-and-fire) モデルを実装した
@@ -20,4 +20,6 @@
 - [x] LIF モデルを追加する
 - [x] ノイズを入れる
 - [ ] ポアソンスパイク生成器を作る
-- [ ] DC などの外部入力を Generator クラスなどとしてまとめる
+- [x] DC などの外部入力を Generator クラスなどとしてまとめる
+- [ ] GUI パッケージを PyQt4 から PySide に変更する（PySide の方がライセンスがゆるいので）
+- [ ] ニューロンモデルを GUI 上で変更できるようにする
